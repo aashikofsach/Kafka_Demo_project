@@ -9,7 +9,7 @@ const producer = new Producer(client);
 producer.on("ready", () => {
   const paymentEvent = JSON.stringify({
     orderId: "order-123",
-    status: "Sucsess",
+    status: "sucsess",
     amount: 150.0,
   });
 
