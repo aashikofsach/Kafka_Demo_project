@@ -6,10 +6,12 @@ let inventory = {
 };
 
 const updateInventory = (PaymentEvent) => {
+  const item = PaymentEvent.itemId;
   const quantityToReduce = 1;
-  if (inventory["item-1"] && PaymentEvent.status === "sucsess")
-    inventory["item-1"] -= quantityToReduce;
-  else if (inventory["item-1"] && PaymentEvent.status !== "sucsess") {
+  if (inventory[item] && PaymentEvent.status === "sucsess") {
+    inventory[item] -= quantityToReduce;
+    console.log("updated inventory", inventory[item]);
+  } else if (inventory[item] && PaymentEvent.status !== "sucsess") {
     console.log("payment failed, inventory not get updated ");
   }
 };

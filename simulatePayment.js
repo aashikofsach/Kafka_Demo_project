@@ -11,6 +11,7 @@ producer.on("ready", () => {
     orderId: "order-123",
     status: "sucsess",
     amount: 150.0,
+    itemId : "item-123"
   });
 
   const payloads = [{ topic: "payments", message: paymentEvent }];
