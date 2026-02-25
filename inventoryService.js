@@ -8,7 +8,7 @@ let inventory = {
 const updateInventory = (PaymentEvent) => {
   const item = PaymentEvent.itemId;
   const quantityToReduce = 1;
-  if (inventory[item] && PaymentEvent.status === "sucsess") {
+  if (inventory[item] && PaymentEvent.status === "success") {
     inventory[item] -= quantityToReduce;
     console.log("updated inventory", inventory[item]);
   } else if (inventory[item] && PaymentEvent.status !== "sucsess") {
@@ -24,3 +24,7 @@ consumer.on("message", (message) => {
     console.log("error processing message", err);
   }
 });
+
+consumer.on("error", (err)=>{
+  console.log("kafka consumer error :" , err)
+})
