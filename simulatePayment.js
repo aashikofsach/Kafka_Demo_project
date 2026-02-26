@@ -1,30 +1,30 @@
-const kafka = require("kafka-node");
+const {kafka} = require('kafkajs');
 
-const Producer = kafka.Producer;
+const kafka = new kafka({
+  brokers : ["localhost:9092"],
+  clientId : "payment-service"
+}) ;
 
-const client = new kafka.KafkaClient({ kafkaHost: "localhost:9092" });
+const producer = kafka.Producer() ;
 
-const producer = new Producer(client);
+const sendPayment = async () => {
+  await producer.connect() ;
 
-producer.on("ready", () => {
-  const paymentEvent = JSON.stringify({
-    orderId: "order-123",
-    status: "sucsess",
-    amount: 150.0,
+  const paymentEvent = {
+    orderId : "order-123",
+    status  : "success",
+    amount : "150",
     itemId : "item-123"
+  }
+
+  await producer.send({
+    topic : "payments",
+    message : [{
+      value : JSON.stringify(paymentEvent)
+    }]
   });
 
-  const payloads = [{ topic: "payments", message: paymentEvent }];
+  console.log("message send successfully");
+}
 
-  producer.send(payloads, (err, data) => {
-    if (err) {
-      console.error("Error sending message", err);
-    } else {
-      console.log("Message send Sucessfully", data);
-    }
-  });
-});
-
-producer.on("error", (err) => {
-  console.log("Error with kafka producer", err);
-});
+sendPayment().catch(console.error) // here as aysnc function return promise but actually nothing is returning but in case if error comes then catch we handle the error from async function
