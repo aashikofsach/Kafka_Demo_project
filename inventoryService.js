@@ -1,30 +1,52 @@
-const consumer = require("./kafkaConsumer");
+const { Kafka } = require("kafkajs");
+
+const kafka = new Kafka({
+  clientId: "inventory-service",
+  brokers: ["localhost:9092"],
+});
+
+const consumer = kafka.consumer({
+  groupId: "inventory-group",
+});
 
 let inventory = {
   "item-1": 150,
   "item-2": 100,
 };
 
-const updateInventory = (PaymentEvent) => {
-  const item = PaymentEvent.itemId;
-  const quantityToReduce = 1;
-  if (inventory[item] && PaymentEvent.status === "success") {
-    inventory[item] -= quantityToReduce;
-    console.log("updated inventory", inventory[item]);
-  } else if (inventory[item] && PaymentEvent.status !== "sucsess") {
-    console.log("payment failed, inventory not get updated ");
+const updateInventory = (paymentEvent) => {
+  const item = paymentEvent.itemId;
+
+  if (inventory[item] && paymentEvent.status === "success") {
+    inventory[item] -= 1;
+    console.log("Updated inventory:", item, inventory[item]);
+  } else if (inventory[item] && paymentEvent.status !== "success") {
+    console.log("Payment failed, inventory not updated");
+  } else {
+    console.log("Item not found in inventory");
   }
 };
 
-consumer.on("message", (message) => {
-  try {
-    const paymentEvent = JSON.parse(message.value);
-    updateInventory(paymentEvent);
-  } catch (err) {
-    console.log("error processing message", err);
-  }
-});
+const runConsumer = async () => {
+  await consumer.connect();
 
-consumer.on("error", (err)=>{
-  console.log("kafka consumer error :" , err)
-})
+  await consumer.subscribe({
+    topic: "payments",
+    fromBeginning: true,
+  });
+
+  await consumer.run({
+    eachMessage: async ({ topic, partition, message }) => {
+      try {
+        const paymentEvent = JSON.parse(message.value.toString());
+        console.log("Received payment event:", paymentEvent);
+
+        updateInventory(paymentEvent);
+      } catch (err) {
+        console.log("Error processing message:", err);
+      }
+    },
+  });
+};
+
+runConsumer().catch(console.error);
